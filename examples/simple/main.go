@@ -66,7 +66,14 @@ func main() {
 	bufSize := int32(8192)
 	outputBuffer := make([]byte, bufSize)
 
-	ret := generated.Rkllm_run_simple_with_fifo(unsafe.Pointer(&cPrompt[0]), RKLLM_INPUT_PROMPT, fifoPath, outputBuffer, bufSize, 0)
+	ret := generated.Rkllm_run_ex(
+		unsafe.Pointer(&cPrompt[0]),
+		RKLLM_INPUT_PROMPT,
+		outputBuffer,
+		bufSize,
+		0,
+		fifoPath,
+	)
 	if ret != 0 {
 		log.Fatalf("Inference error: return code %d", ret)
 	}
