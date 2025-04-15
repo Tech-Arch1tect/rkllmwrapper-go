@@ -2,15 +2,19 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
 	"log"
 	"os"
 	"strings"
 	"syscall"
 	"time"
+	"unsafe"
 
-	"github.com/tech-arch1tect/rkllmwrapper-go/legacy"
+	"github.com/tech-arch1tect/rkllmwrapper-go/generated"
 )
+
+const RKLLM_INPUT_PROMPT = 0
 
 func main() {
 	fifoPath := "/tmp/llm_output_123.fifo"
@@ -52,20 +56,25 @@ func main() {
 		log.Fatalf("RKLLM_MODEL_PATH environment variable is not set")
 	}
 
-	if err := legacy.Init(modelPath, 4096, 4096); err != nil {
-		log.Fatalf("Failed to initialise RKLLM: %v", err)
+	if ret := generated.Rkllm_init_simple(modelPath, 4096, 4096); ret != 0 {
+		log.Fatalf("Failed to initialise RKLLM, return code: %d", ret)
 	}
-	defer legacy.Destroy()
+	defer generated.Rkllm_destroy_simple()
 
 	prompt := "Hello, How are you?"
+	cPrompt := []byte(prompt + "\x00")
+	bufSize := int32(8192)
+	outputBuffer := make([]byte, bufSize)
 
-	output, err := legacy.RunInferenceWithFifo(prompt, fifoPath, legacy.RKLLM_INPUT_PROMPT)
-	if err != nil {
-		log.Fatalf("Inference error: %v", err)
+	ret := generated.Rkllm_run_simple_with_fifo(unsafe.Pointer(&cPrompt[0]), RKLLM_INPUT_PROMPT, fifoPath, outputBuffer, bufSize, 0)
+	if ret != 0 {
+		log.Fatalf("Inference error: return code %d", ret)
 	}
 
+	finalOutput := string(bytes.Trim(outputBuffer, "\x00"))
+
 	fmt.Println("LLM Final Output:")
-	fmt.Println(output)
+	fmt.Println(finalOutput)
 
 	for !fifoClosed {
 		time.Sleep(1 * time.Second)
