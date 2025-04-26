@@ -13,7 +13,14 @@ package generated
 */
 import "C"
 
-const (
-// RKLLM_WRAPPER_H as defined in include/rkllm_wrapper.h:2
-
-)
+// RkllmOptions as declared in include/rkllm_wrapper.h:18
+type RkllmOptions struct {
+	Max_new_tokens  int32
+	Max_context_len int32
+	Top_k           int32
+	Top_p           float32
+	Temperature     float32
+	Num_cpus        int32
+	ref60e62cc1     *C.RkllmOptions
+	allocs60e62cc1  interface{}
+}
