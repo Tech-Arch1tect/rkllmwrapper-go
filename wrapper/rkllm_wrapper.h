@@ -30,14 +30,23 @@ typedef struct {
     int     num_cpus;
 } RkllmOptions;
 
-int  rkllmwrapper_init       (const char* model_path, const RkllmOptions* opts);
-int  rkllm_run_ex            (const void* input, int input_mode, char* output, int output_size, size_t token_count, const char* fifo_path);
-int  rkllmwrapper_is_running ();
-int  rkllmwrapper_abort      ();
-void rkllm_destroy_simple    ();
+typedef void (*RkllmStreamCallback)(const char *token, void *user_data);
+
+int  rkllmwrapper_init(const char *model_path, const RkllmOptions   *opts);
+
+int  rkllm_run_ex(const void            *input,
+                  int                    input_mode,
+                  char                  *output,
+                  int                    output_size,
+                  size_t                 token_count,
+                  RkllmStreamCallback    callback,
+                  void                  *user_data);
+
+int  rkllmwrapper_is_running(void);
+int  rkllmwrapper_abort     (void);
+void rkllm_destroy_simple   (void);
 
 #ifdef __cplusplus
 }
 #endif
-
 #endif
